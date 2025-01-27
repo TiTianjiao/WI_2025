@@ -1,0 +1,23 @@
+
+import os
+import shutil
+
+# Paths to your dataset
+dataset_dir = "path/to/PlotQA Dataset/images/bar"
+annotation_dir = "path/to/annotations"
+
+# Create necessary directories
+os.makedirs(annotation_dir, exist_ok=True)
+
+# List all images in the dataset
+image_files = [f for f in os.listdir(dataset_dir) if f.endswith(('.jpg', '.png'))]
+
+# Move or copy files to a single folder if needed
+for image_file in image_files:
+    image_path = os.path.join(dataset_dir, image_file)
+    annotation_path = os.path.join(annotation_dir, os.path.splitext(image_file)[0] + ".txt")  # YOLO format
+
+    if not os.path.exists(annotation_path):
+        open(annotation_path, 'w').close()  # Create empty annotation file
+
+print("Dataset is organized and ready for LabelImg!")
