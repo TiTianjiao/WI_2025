@@ -1,0 +1,77 @@
+import os
+import json
+from PIL import Image
+
+# Define paths
+images_dir = "PlotQA/images"  # Directory containing images
+annotations_file = "PlotQA/annotations.json"  # Original PlotQA annotations
+output_coco_file = "coco_annotations.json"  # Output COCO format annotations
+
+# Define COCO structure
+coco_format = {
+    "images": [],
+    "annotations": [],
+    "categories": [
+        {"id": 1, "name": "bar"},
+        {"id": 2, "name": "x-label"},
+        {"id": 3, "name": "y-tick label"},
+        {"id": 4, "name": "y-label"},
+        {"id": 5, "name": "title"},
+        {"id": 6, "name": "legend"},
+        {"id": 7, "name": "preview"},
+    ]
+}
+
+# Helper function to generate COCO-style annotations
+def convert_to_coco(images_dir, annotations_file):
+    annotation_id = 1
+    with open(annotations_file, "r") as f:
+        plotqa_annotations = json.load(f)
+
+    for img_id, (file_name, metadata) in enumerate(plotqa_annotations.items(), start=1):
+        # Add image details to COCO
+        img_path = os.path.join(images_dir, file_name)
+        with Image.open(img_path) as img:
+            width, height = img.size
+
+        coco_format["images"].append({
+            "id": img_id,
+            "file_name": file_name,
+            "width": width,
+            "height": height,
+        })
+
+        # Add annotations to COCO
+        for obj in metadata["objects"]:
+            bbox = obj["bbox"]  # Assume [x, y, width, height]
+            category_id = obj["category_id"]  # Ensure categories match
+
+            # Example for segmentation (if provided)
+            segmentation = obj.get("segmentation", [])
+
+            coco_format["annotations"].append({
+                "id": annotation_id,
+                "image_id": img_id,
+                "category_id": category_id,
+                "bbox": bbox,
+                "segmentation": segmentation,
+                "area": bbox[2] * bbox[3],  # width * height
+                "iscrowd": 0,
+            })
+            annotation_id += 1
+
+# Run conversion
+convert_to_coco(images_dir, annotations_file)
+
+# Save COCO annotations
+with open(output_coco_file, "w") as f:
+    json.dump(coco_format, f, indent=4)
+
+print(f"COCO annotations saved to {output_coco_file}")
+
+
+
+
+
+
+
